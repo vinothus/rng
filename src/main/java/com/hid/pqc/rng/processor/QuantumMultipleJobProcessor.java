@@ -35,19 +35,62 @@ public class QuantumMultipleJobProcessor {
     private final BraketClient braketClient;
 
 
-    private final String deviceArn;
+    private  String deviceArn;
 
 
-    private final String s3;
+    private  String s3;
 
-    final S3Client  s3Client;
+     S3Client  s3Client;
 
     private String s3Prefix;
     private String circuitFileName;
     private final ExecutorService executorService; // Configurable thread pool
 
     ObjectMapper objectMapper;
-    public QuantumMultipleJobProcessor(BraketClient braketClient, String deviceArn, String s3, S3Client s3Client, String s3Prefix, int pool,String circuitFileName) {
+
+    public String getDeviceArn() {
+        return deviceArn;
+    }
+
+    public void setDeviceArn(String deviceArn) {
+        this. deviceArn = deviceArn;
+    }
+
+    public String getS3() {
+        return s3;
+    }
+    public void setS3(String s3) {
+        this.s3 =s3;
+    }
+    public S3Client getS3Client() {
+        return s3Client;
+    }
+
+    public String getS3Prefix() {
+        return s3Prefix;
+    }
+
+    public void setS3Prefix(String s3Prefix) {
+        this.s3Prefix = s3Prefix;
+    }
+
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    public String getCircuitFileName() {
+        return circuitFileName;
+    }
+
+    public void setS3Client(S3Client s3Client) {
+        this.s3Client = s3Client;
+    }
+
+    public void setCircuitFileName(String circuitFileName) {
+        this.circuitFileName = circuitFileName;
+    }
+
+    public QuantumMultipleJobProcessor(BraketClient braketClient, String deviceArn, String s3, S3Client s3Client, String s3Prefix, int pool, String circuitFileName) {
         this.braketClient = braketClient;
         this.deviceArn = deviceArn;
         this.s3 = s3;
@@ -146,7 +189,10 @@ public class QuantumMultipleJobProcessor {
             return "";
         }
     }
-
+    public ResponseEntity<List<Map<String, Object>>> getQuantumResults(String requestId,String s3Prefix) {
+        this.s3Prefix = s3Prefix;
+        return getQuantumResults(requestId);
+    }
 
 
     @GetMapping("/results/{requestId}")

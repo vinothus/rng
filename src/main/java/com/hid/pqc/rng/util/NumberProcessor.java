@@ -2,7 +2,9 @@ package com.hid.pqc.rng.util;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NumberProcessor {
 
@@ -39,7 +41,17 @@ private NumberProcessor()
 
         return result;
     }
+    public static List<String> convertStringToList(String inputString) {
+        // Step 1: Remove the square brackets
+        String cleanedString = inputString.replaceAll("[\\[\\]]", "");
 
+        // Step 2: Split the string by commas and trim whitespace
+        List<String> resultHexArray = Arrays.stream(cleanedString.split(","))
+                .map(String::trim) // Trim whitespace around each element
+                .collect(Collectors.toList());
+
+        return resultHexArray;
+    }
     public static long binaryToDecimal(List<Integer> binaryString) {
         StringBuilder binaryStringBuilder = new StringBuilder();
         for (int bit : binaryString) {
