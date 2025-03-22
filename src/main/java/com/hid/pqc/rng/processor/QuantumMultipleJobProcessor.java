@@ -57,7 +57,20 @@ public class QuantumMultipleJobProcessor {
         this.circuitFileName=circuitFileName;
         objectMapper=new ObjectMapper();
     }
+    public void processJobs(String requestId, int count,long shots) {
+        List<CompletableFuture<String>> futures = new ArrayList<>();
 
+        for (int i = 0; i < count; i++) {
+            CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> this.submitBraketJob(shots), executorService);futures.add(future);
+        }
+
+        // Wait for all tasks to complete and collect job ARNs
+        List<String> jobArns = futures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+
+        saveToS3(requestId, jobArns);
+    }
     public void processJobs(String requestId, int count) {
         List<CompletableFuture<String>> futures = new ArrayList<>();
 
@@ -88,6 +101,19 @@ public class QuantumMultipleJobProcessor {
         return createQuantumTaskResponse.quantumTaskArn();
     }
 
+    private String submitBraketJob(long shots) {
+        // Define the task parameters
+        CreateQuantumTaskRequest createQuantumTaskRequest = CreateQuantumTaskRequest.builder()
+                .deviceArn(deviceArn) // Use the default simulator
+                .outputS3Bucket(s3) // Replace with a valid S3 bucket
+                .outputS3KeyPrefix(s3Prefix)
+                .action(readQuantumTaskFromFile() )
+                .shots(shots) // Number of shots to run the circuit
+                .build();
+        CreateQuantumTaskResponse createQuantumTaskResponse = braketClient.createQuantumTask(createQuantumTaskRequest);
+
+        return createQuantumTaskResponse.quantumTaskArn();
+    }
     private void saveToS3(String requestId, List<String> jobArns) {
         String fileContent = String.join("\n", jobArns);
         String key = s3Prefix+"/"+requestId + "/QuantumJobs.txt";
@@ -168,7 +194,7 @@ public class QuantumMultipleJobProcessor {
         }
     }
 
-    private List<String> readJobArnsFromS3(String fileKey) {
+    public List<String> readJobArnsFromS3(String fileKey) {
         try {
             String content = readS3File(fileKey);
             return Arrays.asList(content.split("\n"));
@@ -197,7 +223,7 @@ private List<List<Integer>> extractMeasurement(String jsonContent) throws JsonPr
     JsonNode measurements = rootNode.path("measurements");
     for (int i = 0; i < measurements.size(); i++) {
         JsonNode shotResult = measurements.get(i).path("shotResult");
-        if(shotResult!=null&&!(shotResult.toString().length()==0)) {
+        if(shotResult!=null&&(shotResult.toString().length()!=0)) {
             List<Integer> postSequence = objectMapper.convertValue(shotResult.path("postSequence"), List.class);
             result.add(postSequence);
         }else{
@@ -222,12 +248,11 @@ private List<List<Integer>> extractMeasurement(String jsonContent) throws JsonPr
                 JsonNode shotResult = measurements.get(i).path("shotResult");
 
                 // Extract preSequence and postSequence arrays
-                //List<Integer> preSequence = objectMapper.convertValue(shotResult.path("preSequence"), List.class);
-                if(shotResult!=null&&!(shotResult.toString().length()==0)) {
+                  if(shotResult!=null&&(shotResult.toString().length()!=0)) {
                     List<Integer> postSequence = objectMapper.convertValue(shotResult.path("postSequence"), List.class);
 
                     // Convert binary arrays to hexadecimal
-                    // String preHex = binaryListToHex(preSequence);
+
                     String postHex = binaryListToHex(postSequence);
                     hexDecimal.append(postHex);
                     hexadecimal.add(postHex);
@@ -253,28 +278,8 @@ private List<List<Integer>> extractMeasurement(String jsonContent) throws JsonPr
         }
     }
 
-    private int hexToDecimal(String hex) {
-        try {
-            return Integer.parseInt(hex, 16);
-        } catch (Exception e) {
-            return -1;  // Return -1 if conversion fails
-        }
-    }
 
-   /* private String readS3File(String fileKey) {
-        try {
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(s3)
-                    .key(fileKey)
-                    .build();
 
-            ResponseInputStream<?> s3InputStream = s3Client.getObject(getObjectRequest);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(s3InputStream));
-            return reader.lines().collect(Collectors.joining("\n"));
-        } catch (Exception e) {
-            return "Error reading file: " + fileKey;
-        }
-    }*/
 
     // Helper method to convert a binary list to hexadecimal
     private static String binaryListToHex(List<Integer> binaryList) {

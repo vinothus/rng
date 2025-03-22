@@ -19,6 +19,7 @@ public class AppProperties {
 
     public static class Scheduler {
         private long fixedRate;
+        private String tableName;
 
         public long getFixedRate() {
             return fixedRate;
@@ -26,6 +27,13 @@ public class AppProperties {
 
         public void setFixedRate(long fixedRate) {
             this.fixedRate = fixedRate;
+        }
+        public String getTableName() {
+            return tableName;
+        }
+
+        public void setTableName(String tableName) {
+            this.tableName = tableName;
         }
     }
 
