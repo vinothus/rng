@@ -9,6 +9,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.braket.BraketClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
@@ -36,7 +37,16 @@ public class AwsConfig {
             .credentialsProvider(DefaultCredentialsProvider.create())  // Uses AWS credentials from ~/.aws/credentials
             .build();
 }
+    @Bean
+    public DynamoDbClient dynamoDbClient() {
+        // Replace with your AWS access key and secret key
 
+        // Build and return the DynamoDbClient
+        return DynamoDbClient.builder()
+                .region(Region.US_EAST_1) // Replace with your desired region
+                .credentialsProvider(DefaultCredentialsProvider.create())
+                .build();
+    }
     @Bean
         public QuantumJobProcessor quantumJobProcessor()
     {

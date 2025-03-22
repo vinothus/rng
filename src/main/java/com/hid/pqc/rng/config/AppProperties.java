@@ -32,6 +32,7 @@ public class AppProperties {
     public static class Random {
         private int count;
         private int length;
+        private String tableName;
 
         public int getCount() {
             return count;
@@ -47,6 +48,13 @@ public class AppProperties {
 
         public void setLength(int length) {
             this.length = length;
+        }
+        public String getTableName() {
+            return tableName;
+        }
+
+        public void setTableName(String tableName) {
+            this.tableName = tableName;
         }
     }
 }

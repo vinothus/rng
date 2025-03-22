@@ -23,7 +23,7 @@ public class DynamoDbService {
 
     // Get the count of active RandomHex records
     public int getActiveRandomHexCount() {
-        String tableName = "RandomHexTable";
+        String tableName = appProperties.getRandom().getTableName(); // Use table name from properties
         QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(tableName)
                 .keyConditionExpression("status = :status AND isConsumed = :isConsumed")
