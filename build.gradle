@@ -24,7 +24,7 @@ dependencies {
 	implementation 'software.amazon.awssdk:braket:2.20.16'
 	// https://mvnrepository.com/artifact/software.amazon.awssdk/s3
 	implementation group: 'software.amazon.awssdk', name: 's3', version: '2.30.34'
-
+	implementation 'software.amazon.awssdk:dynamodb:2.20.0'
 	implementation 'org.projectlombok:lombok:1.18.30' // Use latest version
 	annotationProcessor 'org.projectlombok:lombok:1.18.30'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
