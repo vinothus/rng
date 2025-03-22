@@ -1,0 +1,7 @@
+{
+  "braketSchemaHeader": {
+    "name": "braket.ir.openqasm.program",
+    "version": "1"
+  },
+  "source": "OPENQASM 3;\nqubit[2] q;\nh q[0];\nz q[1];\nmeasure q[0];\nmeasure q[1];"
+}

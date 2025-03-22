@@ -1,0 +1,46 @@
+{
+  "braketSchemaHeader": {
+    "name": "braket.ir.ahs.program",
+    "version": "1"
+  },
+  "setup": {
+    "ahs_register": {
+      "sites": [
+        [0E-7, 0E-7], [4E-6, 0E-7], [8E-6, 0E-7], [12E-6, 0E-7], [16E-6, 0E-7], [20E-6, 0E-7], [24E-6, 0E-7], [28E-6, 0E-7], [32E-6, 0E-7], [36E-6, 0E-7],
+        [40E-6, 0E-7], [44E-6, 0E-7], [48E-6, 0E-7], [52E-6, 0E-7], [56E-6, 0E-7], [60E-6, 0E-7], [64E-6, 0E-7]
+      ],
+      "filling": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    }
+  },
+  "hamiltonian": {
+    "drivingFields": [
+      {
+        "amplitude": {
+          "pattern": "uniform",
+          "time_series": {
+            "values": [0.0, 15700000.0, 15700000.0, 0.0],
+            "times": [0E-9, 1E-6, 2E-6, 3E-6]
+          }
+        },
+        "detuning": {
+          "pattern": "uniform",
+          "time_series": {
+            "values": [0.0, 0.0],
+            "times": [0E-9, 3E-6]
+          }
+        },
+        "phase": {
+          "pattern": "uniform",
+          "time_series": {
+            "values": [0.0, 99.0],
+            "times": [0E-9, 3E-6]
+          }
+        }
+      }
+    ],
+    "localDetuning": []
+  },
+  "measurement": {
+    "final_readout": "ground-rydberg"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "braketSchemaHeader": {
+    "name": "braket.ir.openqasm.program",
+    "version": "1"
+  },
+  "source": "OPENQASM 2.0;\n\nqreg q[34];\ncreg c[34];\n\nh q[0];\nh q[1];\nh q[2];\nh q[3];\nh q[4];\nh q[5];\nh q[6];\nh q[7];\nh q[8];\nh q[9];\nh q[10];\nh q[11];\nh q[12];\nh q[13];\nh q[14];\nh q[15];\nh q[16];\nh q[17];\nh q[18];\nh q[19];\nh q[20];\nh q[21];\nh q[22];\nh q[23];\nh q[24];\nh q[25];\nh q[26];\nh q[27];\nh q[28];\nh q[29];\nh q[30];\nh q[31];\nh q[32];\nh q[33];\nmeasure q -> c;"
+}
