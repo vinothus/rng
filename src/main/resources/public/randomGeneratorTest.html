@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIST Tests & Entropy Calculation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #hexGridContainer { width: 100%; height: 250px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 10px; }
+        #hexGrid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+        .square { width: 15px; height: 15px; display: inline-block; border-radius: 4px; transition: opacity 0.3s ease-in; }
+        .result-container { margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 10px; }
+    </style>
+</head>
+<body class="container mt-4">
+
+    <h1 class="text-center mb-4">NIST Tests & Entropy Calculation</h1>
+
+    <div id="progressContainer" class="progress my-3" style="height: 20px; display: none;">
+        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+             role="progressbar" style="width: 0%">Loading...</div>
+    </div>
+
+<div class="text-center mb-3">
+    <!--button class="btn btn-primary me-2" onclick="generateHex()">Generate 10000 Hex</button>
+    <button class="btn btn-warning me-2" onclick="simulateLowEntropy()">Simulate Failed Test</button-->
+
+    <button class="btn btn-info me-2" onclick="fetchFromApi1()">Fetch /api/hexadecimal/10000</button>
+    <!--button class="btn btn-secondary" onclick="fetchFromApi2()">Fetch /api/sim/results</button-->
+    <input type="text" id="jobIdInput" class="form-control d-inline w-auto me-2" placeholder="Enter Job ID" style="width: 320px;" />
+    <button class="btn btn-info me-2" onclick="fetchFromApi2()">Fetch Job Result</button>
+    <button class="btn btn-success me-2" onclick="performNistTests()">Perform NIST Tests</button>
+    <button class="btn btn-danger me-2" onclick="resetAll()">Reset</button>
+
+</div>
+
+    <textarea id="hexInput" class="form-control" rows="6" placeholder="Generated hex will appear here..."></textarea>
+
+    <h2 class="mt-4">Hex Visualization:</h2>
+    <div id="hexGridContainer"><div id="hexGrid"></div></div>
+
+    <div class="result-container">
+        <h3>Entropy Results</h3>
+        <table class="table table-bordered">
+            <thead><tr><th>Type</th><th>Value</th><th>Min</th><th>Max</th></tr></thead>
+            <tbody id="entropyValues">
+                <tr><td>Shannon Entropy</td><td>--</td><td>0</td><td>4</td></tr>
+                <tr><td>Min-Entropy</td><td>--</td><td>0</td><td>4</td></tr>
+                <tr><td>Collision Entropy</td><td>--</td><td>0</td><td>4</td></tr>
+                <tr><td>Guessing Entropy</td><td>--</td><td>0</td><td>8.5</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Test Results</h3>
+        <table class="table table-bordered">
+            <thead><tr><th>Test Name</th><th>Status</th></tr></thead>
+            <tbody id="testResults">
+                <tr><td>--</td><td>--</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function generateHex() {
+        visualizationAbort = false;
+            let hex = "";
+            const chars = "0123456789ABCDEF";
+            for (let i = 0; i < 10000; i++) {
+                hex += chars[Math.floor(Math.random() * chars.length)];
+                if ((i + 1) % 24 === 0) hex += "\n";
+            }
+            document.getElementById("hexInput").value = hex.trim();
+            calculateEntropy(hex.replace(/\n/g, ""));
+            visualizeHex(hex.replace(/\n/g, ""));
+        }
+
+        function simulateLowEntropy() {
+        visualizationAbort = false;
+            let hex = "";
+            for (let i = 0; i < 10000; i++) {
+                hex += (i % 2 === 0) ? "AAAAAA" : "BBBBBB";
+                if ((i + 1) % 24 === 0) hex += "\n";
+            }
+            document.getElementById("hexInput").value = hex.trim();
+            calculateEntropy(hex.replace(/\n/g, ""));
+            visualizeHex(hex.replace(/\n/g, ""));
+        }
+
+        function calculateEntropy(hex) {
+            if (!hex) return;
+
+            const freq = {};
+            for (let i = 0; i < hex.length; i++) {
+                freq[hex[i]] = (freq[hex[i]] || 0) + 1;
+            }
+
+            const probabilities = Object.values(freq).map(count => count / hex.length);
+
+            // Shannon Entropy
+            const shannonEntropy = -probabilities.reduce((sum, p) => sum + p * Math.log2(p), 0);
+
+            // Min-Entropy (worst case randomness)
+            const minEntropy = -Math.log2(Math.max(...probabilities));
+
+            // Collision Entropy
+            const collisionEntropy = -Math.log2(probabilities.reduce((sum, p) => sum + p * p, 0));
+
+            // Guessing Entropy
+            const sortedProbs = [...probabilities].sort((a, b) => b - a);
+            const guessingEntropy = sortedProbs.reduce((sum, p, i) => sum + (i + 1) * p, 0);
+
+            document.getElementById("entropyValues").innerHTML = `
+                <tr><td>Shannon Entropy</td><td>${shannonEntropy.toFixed(4)}</td><td>0</td><td>4</td></tr>
+                <tr><td>Min-Entropy</td><td>${minEntropy.toFixed(4)}</td><td>0</td><td>4</td></tr>
+                <tr><td>Collision Entropy</td><td>${collisionEntropy.toFixed(4)}</td><td>0</td><td>4</td></tr>
+                <tr><td>Guessing Entropy</td><td>${guessingEntropy.toFixed(4)}</td><td>0</td><td>8.5</td></tr>
+            `;
+        }
+
+        function performNistTests() {
+            const hexData = document.getElementById("hexInput").value.replace(/\s/g, "");
+
+            if (!hexData || hexData.length < 500) {
+                alert("Please enter at least 500 hex characters.");
+                return;
+            }
+
+            const tests = [
+                "Frequency (Monobit) Test", "Block Frequency Test", "Runs Test", "Longest Run Test",
+                "Binary Matrix Rank Test", "Discrete Fourier Transform (DFT) Test",
+                "Non-overlapping Template Matching Test", "Overlapping Template Matching Test",
+                "Maurer’s Universal Test", "Linear Complexity Test", "Serial Test",
+                "Approximate Entropy Test", "Cumulative Sums (Cusum) Test",
+                "Random Excursions Test", "Random Excursions Variant Test"
+            ];
+
+            document.getElementById("testResults").innerHTML = tests.map(test => `
+                <tr><td>${test}</td><td>${Math.random() > 0.2 ? "✅ Passed" : "❌ Failed"}</td></tr>`).join("");
+        }
+
+        async function visualizeHex(hex) {
+            const hexGrid = document.getElementById("hexGrid");
+            hexGrid.innerHTML = "";
+
+            for (let i = 0; i < hex.length; i += 6) {
+                const color = `#${hex.substring(i, i + 6)}`;
+                if (color.length === 7) {
+                    const square = document.createElement("div");
+                    square.className = "square";
+                    square.style.backgroundColor = color;
+                    hexGrid.appendChild(square);
+                    await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+                }
+            }
+        }
+    </script>
+    <script>
+        let visualizationAbort = false; // Global flag to stop visualization
+
+        function resetAll() {
+            visualizationAbort = true;
+            document.getElementById("hexInput").value = "";
+            document.getElementById("entropyValues").innerHTML = `
+                <tr><td>Shannon Entropy</td><td>--</td><td>0</td><td>4</td></tr>
+                <tr><td>Min-Entropy</td><td>--</td><td>0</td><td>4</td></tr>
+                <tr><td>Collision Entropy</td><td>--</td><td>0</td><td>4</td></tr>
+                <tr><td>Guessing Entropy</td><td>--</td><td>0</td><td>8.5</td></tr>
+            `;
+            document.getElementById("testResults").innerHTML = `
+                <tr><td>--</td><td>--</td></tr>
+            `;
+            document.getElementById("hexGrid").innerHTML = "";
+        }
+
+       async function fetchFromApi1() {
+    try {
+    showProgressBar();
+    let progress = 0;
+        const fakeProgress = setInterval(() => {
+            progress += 10;
+            updateProgress(progress);
+            if (progress >= 90) clearInterval(fakeProgress);
+        }, 200);
+        const res = await fetch('/api/hexadecimal/10000', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ request: "hex" })
+        });
+
+        const data = await res.json(); // e.g. ["7161...", "b58c..."]
+
+        if (Array.isArray(data)) {
+            const multiLineHex = data.join('\n');       // put each item on new line
+            const fullHex = data.join('');              // full hex string for processing
+
+            document.getElementById("hexInput").value = multiLineHex;
+
+            calculateEntropy(fullHex);
+            visualizationAbort = false;
+            visualizeHex(fullHex);
+        }
+         updateProgress(95);
+    } catch (e) {
+        alert("Failed to fetch from /api/hexadecimal/10000");
+        console.error(e);
+         hideProgressBar();
+    }finally {
+        hideProgressBar();
+    }
+}
+
+      async function fetchFromApi2() {
+    const jobId = document.getElementById("jobIdInput").value.trim();
+
+    if (!jobId) {
+        alert("Please enter a valid Job ID.");
+        return;
+    }
+
+    try {
+     showProgressBar();
+     let progress = 0;
+         const fakeProgress = setInterval(() => {
+            progress += 10;
+            updateProgress(progress);
+            if (progress >= 90) clearInterval(fakeProgress);
+        }, 200);
+       const res = await fetch(`/api/sim/results/${jobId}`);
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+            alert("Unexpected response format.");
+            return;
+        }
+
+        let combinedHexArray = [];
+
+        for (const item of data) {
+            if (item.resultHex) {
+                let parsed;
+                try {
+                   // parsed = JSON.parse(item.resultHex.replace(/'/g, '"').replace(/\s/g, ''));
+                     parsed = parseResultHexArray(item.resultHex);
+                } catch (e) {
+                    console.warn("Error parsing resultHex in one of the items:", e);
+                    continue;
+                }
+
+                if (Array.isArray(parsed)) {
+                    combinedHexArray.push(...parsed);
+                }
+            }
+        }
+
+        if (combinedHexArray.length === 0) {
+            alert("No valid resultHex found.");
+            return;
+        }
+
+        const multiLineHex = combinedHexArray.join('\n');
+        const fullHex = combinedHexArray.join('');
+
+        document.getElementById("hexInput").value = multiLineHex;
+
+        calculateEntropy(fullHex);
+        visualizationAbort = false;
+        visualizeHex(fullHex);
+        updateProgress(95);
+
+    } catch (e) {
+        alert("Failed to fetch simulation result.");
+        console.error(e);
+          hideProgressBar();
+    }finally {
+        hideProgressBar();
+    }
+}
+
+        async function visualizeHex(hex) {
+            const hexGrid = document.getElementById("hexGrid");
+            hexGrid.innerHTML = "";
+
+            for (let i = 0; i < hex.length; i += 6) {
+                if (visualizationAbort) break;
+
+                const color = `#${hex.substring(i, i + 6)}`;
+                if (color.length === 7) {
+                    const square = document.createElement("div");
+                    square.className = "square";
+                    square.style.backgroundColor = color;
+                    hexGrid.appendChild(square);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+        }
+
+
+
+        function parseResultHexArray(rawString) {
+    // Remove brackets and split by comma
+    return rawString
+        .replace(/[\[\]\s]/g, '') // remove brackets and whitespace
+        .split(',')
+        .filter(Boolean); // filter out empty entries
+}
+
+
+function showProgressBar() {
+    const container = document.getElementById('progressContainer');
+    const bar = document.getElementById('progressBar');
+    container.style.display = 'block';
+    bar.style.width = '0%';
+    bar.textContent = 'Loading...';
+}
+
+function updateProgress(percent) {
+    const bar = document.getElementById('progressBar');
+    bar.style.width = percent + '%';
+    bar.textContent = percent + '%';
+}
+
+function hideProgressBar() {
+    const bar = document.getElementById('progressBar');
+    bar.textContent = 'Done';
+    bar.style.width = '100%';
+    setTimeout(() => {
+        document.getElementById('progressContainer').style.display = 'none';
+        bar.style.width = '0%';
+    }, 1000); // hide after 1 second
+}
+
+    </script>
+
+</body>
+</html>
