@@ -1,8 +1,6 @@
 package com.hid.pqc.rng.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hid.pqc.rng.model.BraketProgram;
+
 import com.hid.pqc.rng.processor.QuantumJobProcessor;
 import com.hid.pqc.rng.processor.QuantumMultipleJobProcessor;
 import com.hid.pqc.rng.processor.RandomNumberGenerator;
@@ -12,10 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.braket.BraketClient;
-import software.amazon.awssdk.services.braket.model.*;
 import software.amazon.awssdk.services.s3.S3Client;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
