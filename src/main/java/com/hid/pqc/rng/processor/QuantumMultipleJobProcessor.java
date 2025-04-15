@@ -267,13 +267,26 @@ private List<List<Integer>> extractMeasurement(String jsonContent) throws JsonPr
     JsonNode rootNode = objectMapper.readTree(jsonContent);
     List<List<Integer>> result = new ArrayList<>();
     JsonNode measurements = rootNode.path("measurements");
-    for (int i = 0; i < measurements.size(); i++) {
-        JsonNode shotResult = measurements.get(i).path("shotResult");
-        if(shotResult!=null&&(shotResult.toString().length()!=0)) {
-            List<Integer> postSequence = objectMapper.convertValue(shotResult.path("postSequence"), List.class);
+    if(measurements==null&&measurements.size()!=0) {
+        for (int i = 0; i < measurements.size(); i++) {
+            JsonNode shotResult = measurements.get(i).path("shotResult");
+            if (shotResult != null && (shotResult.toString().length() != 0)) {
+                List<Integer> postSequence = objectMapper.convertValue(shotResult.path("postSequence"), List.class);
+                result.add(postSequence);
+            } else {
+                break;
+            }
+        }
+    }else{
+        measurements = rootNode.path("measurementProbabilities");
+        Iterator<String> fieldNames = measurements.fieldNames();
+        while (fieldNames.hasNext()) {
+            String key = fieldNames.next();
+            //String value = measurements.get(key).toString();
+            List<Integer> postSequence = key.chars()
+                    .mapToObj(c -> Character.getNumericValue(c))
+                    .collect(Collectors.toList());
             result.add(postSequence);
-        }else{
-            break;
         }
     }
     if(result.isEmpty()) {
@@ -288,13 +301,14 @@ private List<List<Integer>> extractMeasurement(String jsonContent) throws JsonPr
             List<String> hexadecimal = new ArrayList<>();
             JsonNode rootNode = objectMapper.readTree(jsonContent);
             JsonNode measurements = rootNode.path("measurements");
-            StringBuilder hexDecimal=new StringBuilder();
+            StringBuilder hexDecimal = new StringBuilder();
+            if (measurements != null && measurements.size() != 0) {
             // Iterate through each shot
             for (int i = 0; i < measurements.size(); i++) {
                 JsonNode shotResult = measurements.get(i).path("shotResult");
 
                 // Extract preSequence and postSequence arrays
-                  if(shotResult!=null&&(shotResult.toString().length()!=0)) {
+                if (shotResult != null && (shotResult.toString().length() != 0)) {
                     List<Integer> postSequence = objectMapper.convertValue(shotResult.path("postSequence"), List.class);
 
                     // Convert binary arrays to hexadecimal
@@ -302,11 +316,23 @@ private List<List<Integer>> extractMeasurement(String jsonContent) throws JsonPr
                     String postHex = binaryListToHex(postSequence);
                     hexDecimal.append(postHex);
                     hexadecimal.add(postHex);
-                }else
-                {
-                   break;
+                } else {
+                    break;
                 }
 
+
+            }
+        }else{
+                measurements = rootNode.path("measurementProbabilities");
+                Iterator<String> fieldNames = measurements.fieldNames();
+                ArrayList<String> bitstrings = new ArrayList<>();
+                while (fieldNames.hasNext()) {
+                    String key = fieldNames.next();
+                    bitstrings.add(key);
+                    String postHex = binaryToHex(key);
+                    hexDecimal.append(postHex);
+                    hexadecimal.add(postHex);
+                }
 
             }
             if(hexDecimal.isEmpty()) {
@@ -325,7 +351,23 @@ private List<List<Integer>> extractMeasurement(String jsonContent) throws JsonPr
     }
 
 
+    // Converts a binary string to a hexadecimal string
+    public static String binaryToHex(String binaryStr) {
+        // Pad to multiple of 4 bits (so each group of 4 maps to 1 hex digit)
+        int length = binaryStr.length();
+        int padding = (4 - (length % 4)) % 4;
+        String paddedBinary = "0".repeat(padding) + binaryStr;
 
+        // Convert binary to hex
+        StringBuilder hexBuilder = new StringBuilder();
+        for (int i = 0; i < paddedBinary.length(); i += 4) {
+            String chunk = paddedBinary.substring(i, i + 4);
+            int decimal = Integer.parseInt(chunk, 2);
+            hexBuilder.append(Integer.toHexString(decimal));
+        }
+
+        return hexBuilder.toString();
+    }
 
     // Helper method to convert a binary list to hexadecimal
     private static String binaryListToHex(List<Integer> binaryList) {

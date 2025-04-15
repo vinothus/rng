@@ -30,6 +30,8 @@
     <!--button class="btn btn-secondary" onclick="fetchFromApi2()">Fetch /api/sim/results</button-->
     <input type="text" id="jobIdInput" class="form-control d-inline w-auto me-2" placeholder="Enter Job ID" style="width: 320px;" />
     <button class="btn btn-info me-2" onclick="fetchFromApi2()">Fetch Job Result</button>
+    <button class="btn btn-info me-2" onclick="generateHexFromTextBox()">Calculate Entropy</button>
+
     <button class="btn btn-success me-2" onclick="performNistTests()">Perform NIST Tests</button>
     <button class="btn btn-danger me-2" onclick="resetAll()">Reset</button>
 
@@ -74,7 +76,12 @@
             calculateEntropy(hex.replace(/\n/g, ""));
             visualizeHex(hex.replace(/\n/g, ""));
         }
-
+ function generateHexFromTextBox() {
+   visualizationAbort = false;
+   let hex = document.getElementById("hexInput").value.replace(/\s/g, "");
+    calculateEntropy(hex.replace(/\n/g, ""));
+     visualizeHex(hex.replace(/\n/g, ""));
+ }
         function simulateLowEntropy() {
         visualizationAbort = false;
             let hex = "";

@@ -100,6 +100,40 @@ public class RandomNumberController {
         return requestId; // Immediately return requestId
     }
 
+    @PostMapping("/Aquila/run/jobs/{count}/{shots}")
+    public String runQuantumJQuilaobsWithShots(@PathVariable(name = "count") int count,@PathVariable(name = "shots") int shots) {
+        if (count <= 0 || shots <= 0) {
+            throw new IllegalArgumentException("Count and shots must be positive integers");
+        }
+        String requestId = UUID.randomUUID().toString();
+        new QuantumMultipleJobProcessor(braketClient,"arn:aws:braket:us-east-1::device/qpu/quera/Aquila",s3,s3Client,s3Prefix,pool,"QPU2.json").processJobs(requestId,count,shots);
+
+        return requestId; // Immediately return requestId
+    }
+
+    @PostMapping("/ionq/aria1/run/jobs/{count}/{shots}")
+    public String runQuantumJobsWithShotsAria(@PathVariable(name = "count") int count,@PathVariable(name = "shots") int shots) {
+        if (count <= 0 || shots <= 0) {
+            throw new IllegalArgumentException("Count and shots must be positive integers");
+        }
+        String requestId = UUID.randomUUID().toString();
+        new QuantumMultipleJobProcessor(braketClient,"arn:aws:braket:us-east-1::device/qpu/ionq/Aria-1",s3,s3Client,s3Prefix,pool,"quantum3.json").processJobs(requestId,count,shots);
+
+        return requestId; // Immediately return requestId
+    }
+
+    @PostMapping("/ionq/FE/run/jobs/{count}/{shots}")
+    public String runQuantumJobsWithShotsForteEnterprise(@PathVariable(name = "count") int count,@PathVariable(name = "shots") int shots) {
+        if (count <= 0 || shots <= 0) {
+            throw new IllegalArgumentException("Count and shots must be positive integers");
+        }
+        String requestId = UUID.randomUUID().toString();
+        new QuantumMultipleJobProcessor(braketClient,"arn:aws:braket:us-east-1::device/qpu/ionq/Forte-Enterprise-1",s3,s3Client,s3Prefix,pool,"quantum2.json").processJobs(requestId,count,shots);
+
+        return requestId; // Immediately return requestId
+    }
+
+
     @PostMapping("/sim/run/jobs/{count}/{shots}")
     public String runQuantumJobsWithShotsSim(@PathVariable(name = "count") int count,@PathVariable(name = "shots") int shots) {
         if (count <= 0 || shots <= 0) {
